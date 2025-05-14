@@ -8,6 +8,7 @@ import (
 	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var DB *gorm.DB
@@ -26,7 +27,16 @@ func ConnectDatabase() {
 		os.Getenv("DB_NAME"),
 	)
 
-	database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(
+			func() logger.LogLevel {
+				if os.Getenv("ENABLE_LOGGING") == "true" {
+					return logger.Info
+				}
+				return logger.Silent
+			}(),
+		),
+	})
 	if err != nil {
 		log.Fatal("❌ Failed to connect to database!")
 	}

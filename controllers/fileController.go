@@ -33,6 +33,12 @@ func UploadFile(c *fiber.Ctx, uploadDir string) (*os.File, string, string, strin
 		}
 	}
 
+	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
+		if err := os.MkdirAll(uploadDir, os.ModePerm); err != nil {
+			return nil, "", "", "", "", utils.HandleError(err, "Failed to create upload directory", utils.Error)
+		}
+	}
+
 	ext := filepath.Ext(fileHeader.Filename)
 	savePath := fmt.Sprintf("%s/%s%s", uploadDir, id, ext)
 

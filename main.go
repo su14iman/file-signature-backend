@@ -51,7 +51,9 @@ func main() {
 	}
 
 	// Start Fiber app
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		ErrorHandler: utils.MainErrorHandler,
+	})
 
 	// Middlewares
 	app.Use(cors.New(cors.Config{

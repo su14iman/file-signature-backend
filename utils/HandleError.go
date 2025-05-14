@@ -3,7 +3,10 @@ package utils
 import (
 	"fmt"
 	"log"
+	"os"
 	"time"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 const (
@@ -15,7 +18,7 @@ const (
 func HandleError(err error, customMessage string, level string) error {
 
 	if err != nil {
-		// Log the error with a timestamp
+
 		logMessage := fmt.Sprintf(
 			"\n%s [%s] - %s\n%v",
 			time.Now().Format(time.RFC3339),
@@ -23,7 +26,10 @@ func HandleError(err error, customMessage string, level string) error {
 			customMessage,
 			err,
 		)
-		log.Println(logMessage)
+
+		if os.Getenv("ENABLE_LOGGING") == "true" {
+			log.Println(logMessage)
+		}
 
 		// return error
 		return fmt.Errorf(
@@ -36,22 +42,13 @@ func HandleError(err error, customMessage string, level string) error {
 	return nil
 }
 
-func HandleErrorJSON(err error, customMessage string, level string) map[string]interface{} {
-	if err != nil {
-		// Log the error with a timestamp
-		logMessage := fmt.Sprintf(
-			"\n%s [%s] - %s\n%v",
-			time.Now().Format(time.RFC3339),
-			level,
-			customMessage,
-			err,
-		)
-		log.Println(logMessage)
-
-		return map[string]interface{}{
-			"error":   customMessage,
-			"message": err.Error(),
-		}
+func MainErrorHandler(c *fiber.Ctx, err error) error {
+	code := fiber.StatusInternalServerError
+	if e, ok := err.(*fiber.Error); ok {
+		code = e.Code
 	}
-	return nil
+	return c.Status(code).JSON(fiber.Map{
+		"error":  err.Error(),
+		"status": code,
+	})
 }
